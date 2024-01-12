@@ -1,0 +1,9 @@
+ const firebaseConfig = {
+      apiKey: "AIzaSyAXtFQVA5Q7K3F_IeqFrR_-wDdqj4KsLFY",
+      authDomain: "shyam-gmbh.firebaseapp.com",
+      projectId: "shyam-gmbh",
+      storageBucket: "shyam-gmbh.appspot.com",
+      messagingSenderId: "1096712939317",
+      appId: "1:1096712939317:web:76f6238d5b6c418802ce7c",
+      measurementId: "G-NVH7E83Z94"
+    };
