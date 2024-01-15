@@ -15,15 +15,25 @@ import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router-dom";
 import {
   getAuth,
-  signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
-  User,
-  sendPasswordResetEmail,
+  onAuthStateChanged
 } from "firebase/auth";
+import { initializeApp } from "firebase/app";
 import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 
-const pages = ["home", "about"];
+const pages = ["Home", "About","contactus"];
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXtFQVA5Q7K3F_IeqFrR_-wDdqj4KsLFY",
+  authDomain: "shyam-gmbh.firebaseapp.com",
+  projectId: "shyam-gmbh",
+  storageBucket: "shyam-gmbh.appspot.com",
+  messagingSenderId: "1096712939317",
+  appId: "1:1096712939317:web:76f6238d5b6c418802ce7c",
+  measurementId: "G-NVH7E83Z94"
+};
+
+initializeApp(firebaseConfig);
 
 function Menubar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -49,10 +59,19 @@ function Menubar() {
     const auth = getAuth();
     signOut(auth).then(() => {
       console.log("User logged out");
-      setUser(false);
       navigate(`/home`);
     });
   };
+  React.useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user); // Update the user state based on the authentication state
+    });
+
+    // Clean up the subscription when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -175,7 +194,7 @@ function Menubar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              <MenuItem onClick={handleCloseUserMenu}>
+               <MenuItem onClick={handleCloseUserMenu}>
                 {user ? (
                   <>
                     <Button
@@ -186,11 +205,19 @@ function Menubar() {
                     >
                       Log Out
                     </Button>
+                    <Button
+                     onClick={() => navigate('/edit')}
+                      fullWidth
+                      variant="contained"
+                      sx={{ mt: 3, mb: 2 }}
+                    >
+                      Editmyprofile
+                    </Button>
                   </>
                 ) : (
                   <>
                     <Button
-                      onClick={handleLogout}
+                      onClick={() => navigate('/signin')} 
                       fullWidth
                       variant="contained"
                       sx={{ mt: 3, mb: 2 }}

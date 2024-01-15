@@ -6,6 +6,8 @@ import About from './Pages/About';
 import Menubar from './Components/Menubar';
 import UserDetails from './Pages/UserDetails';
 import Signin from './Components/Signin';
+import ContactMe from './Pages/ContactMe';
+import UserDetailsForm from './Components/UserDetailsForm';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
           <Route path="/my-component" element={<MyComponent />} />
           <Route path="/userdetails" element={<UserDetails />} />
           <Route path="/signin" element={<Signin />} />
+          <Route path="/contactus" element={<ContactMe />} />
+          <Route path="/edit" element={<UserDetailsForm />} />
         </Routes>
       </div>
     </Router>

@@ -1,6 +1,7 @@
 // UserDetails.js
 import React, { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import UserDetailsForm from '../Components/UserDetailsForm';
 
 const UserDetails = () => {
 
@@ -27,9 +28,10 @@ const UserDetails = () => {
     <div>
       {user ? (
         <h2>Welcome, {user.email}!</h2>
+        
         // Use the user's email directly from Firebase Authentication data
       ) : (
-        <p>Please log in to view user details.</p>
+        <p>Please log in to view your saved details.</p>
       )}
     </div>
   );
