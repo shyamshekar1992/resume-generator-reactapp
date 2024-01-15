@@ -1,26 +1,7 @@
-import React, { useState } from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import {
-  doc,
-  setDoc,
-  getFirestore,
-  getDoc,
-} from 'firebase/firestore';
-import {
-  getAuth,
-} from 'firebase/auth';
-import {
-  initializeApp,
-} from 'firebase/app';
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from 'firebase/storage';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, updateProfile } from 'firebase/auth';
+import { Container, Paper, Typography, TextField, Button, Alert } from '@mui/material';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXtFQVA5Q7K3F_IeqFrR_-wDdqj4KsLFY",
@@ -33,169 +14,139 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const auth = getAuth(app);
 
-const UserDetailsForm = () => {
-  const auth = getAuth();
-  const user = auth.currentUser;
-
+const UpdateUserInfo = () => {
+  const [user, setUser] = useState(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
+  const [updatedUserInfo, setUpdatedUserInfo] = useState(null); // New state for retrieved user information
+  const [error, setError] = useState(null);
 
-  const formik = useFormik({
-    initialValues: {
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-      streetAddress: '',
-      cityName: '',
-      country: '',
-      email: '',
-    },
-    validationSchema: Yup.object({
-      firstName: Yup.string().required('Required'),
-      lastName: Yup.string().required('Required'),
-      phoneNumber: Yup.string().required('Required'),
-      streetAddress: Yup.string().required('Required'),
-      cityName: Yup.string().required('Required'),
-      country: Yup.string().required('Required'),
-      email: Yup.string().email('Invalid email address').required('Required'),
-    }),
-    onSubmit: async (values) => {
-      try {
-        // Upload profile picture to Firebase Storage
-        const profilePictureRef = ref(storage, `profilePictures/${user.uid}`);
-        await uploadBytes(profilePictureRef, profilePicture);
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
 
-        // Get download URL
-        const profilePictureUrl = await getDownloadURL(profilePictureRef);
+    return () => unsubscribe();
+  }, [auth]);
 
-        const userDetails = {
-            userId: user.uid,
-            email: values.email,
-            profilePicture: profilePictureUrl,
-            firstName: values.firstName,
-            lastName: values.lastName,
-            phoneNumber: values.phoneNumber,
-            streetAddress: values.streetAddress,
-            cityName: values.cityName,
-            country: values.country,
-          };
-          
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setProfilePicture(file);
+  };
 
-        // Add or update the user details in Firestore
-        const userDocRef = doc(db, 'user_data', user.uid);
-        const userDocSnapshot = await getDoc(userDocRef);
+  const handleUpdateUserInfo = async () => {
+    try {
+      if (user) {
+        // Update user profile information
+        await updateProfile(user, {
+          displayName: `${firstName} ${lastName}`,
+          photoURL: profilePicture ? URL.createObjectURL(profilePicture) : null,
+        });
 
-        if (userDocSnapshot.exists()) {
-          await setDoc(userDocRef, userDetails, { merge: true });
-          alert('User data updated successfully');
-        } else {
-          await setDoc(userDocRef, userDetails);
-        }
+        // Retrieve updated user information
+        const updatedUser = await auth.currentUser;
+        setUpdatedUserInfo(updatedUser);
 
-      } catch (error) {
-        console.error('Error updating user data:', error);
+        console.log('User information updated successfully');
+        setError(null);
+      } else {
+        setError('User is not signed in');
       }
-    },
-  });
-
-  const handleProfilePictureChange = (e) => {
-    // Handle the selected profile picture file
-    setProfilePicture(e.target.files[0]);
+    } catch (error) {
+      setError('Error updating user information');
+      console.error('Error updating user information:', error);
+    }
   };
 
   return (
-    <form onSubmit={formik.handleSubmit} className="max-w-md mx-auto my-4">
-      <TextField
-        id="firstName"
-        label="First Name"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('firstName')}
-        error={formik.touched.firstName && Boolean(formik.errors.firstName)}
-        helperText={formik.touched.firstName && formik.errors.firstName}
-      />
+    <Container component="main" maxWidth="xs">
+      <Paper elevation={3} sx={{ padding: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography component="h1" variant="h5">
+          Update User Information
+        </Typography>
 
-      <TextField
-        id="lastName"
-        label="Last Name"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('lastName')}
-        error={formik.touched.lastName && Boolean(formik.errors.lastName)}
-        helperText={formik.touched.lastName && formik.errors.lastName}
-      />
+        {error && <Alert severity="error">{error}</Alert>}
 
-      <TextField
-        id="phoneNumber"
-        label="Phone Number"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('phoneNumber')}
-        error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
-        helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
-      />
+        <TextField
+          margin="normal"
+          fullWidth
+          id="firstName"
+          label="First Name"
+          name="firstName"
+          autoComplete="given-name"
+          value={firstName}
+          onChange={(event) => setFirstName(event.target.value)}
+        />
 
-      <TextField
-        id="streetAddress"
-        label="Street Address"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('streetAddress')}
-        error={formik.touched.streetAddress && Boolean(formik.errors.streetAddress)}
-        helperText={formik.touched.streetAddress && formik.errors.streetAddress}
-      />
+        <TextField
+          margin="normal"
+          fullWidth
+          id="lastName"
+          label="Last Name"
+          name="lastName"
+          autoComplete="family-name"
+          value={lastName}
+          onChange={(event) => setLastName(event.target.value)}
+        />
 
-      <TextField
-        id="cityName"
-        label="City Name"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('cityName')}
-        error={formik.touched.cityName && Boolean(formik.errors.cityName)}
-        helperText={formik.touched.cityName && formik.errors.cityName}
-      />
+        <TextField
+          margin="normal"
+          fullWidth
+          id="phoneNumber"
+          label="Phone Number"
+          name="phoneNumber"
+          autoComplete="tel"
+          value={phoneNumber}
+          onChange={(event) => setPhoneNumber(event.target.value)}
+        />
 
-      <TextField
-        id="country"
-        label="Country"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('country')}
-        error={formik.touched.country && Boolean(formik.errors.country)}
-        helperText={formik.touched.country && formik.errors.country}
-      />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          style={{ margin: '16px 0' }}
+        />
 
-      <TextField
-        id="email"
-        label="Email"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        {...formik.getFieldProps('email')}
-        error={formik.touched.email && Boolean(formik.errors.email)}
-        helperText={formik.touched.email && formik.errors.email}
-      />
+        {profilePicture && (
+          <img
+            src={URL.createObjectURL(profilePicture)}
+            alt="Profile Preview"
+            style={{ maxWidth: '100%', marginBottom: '16px' }}
+          />
+        )}
 
-      <h1>Choose your profile</h1>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleProfilePictureChange}
-      />
+        <Button onClick={handleUpdateUserInfo} fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+          Update Information
+        </Button>
 
-      <Button type="submit" variant="contained" color="primary" fullWidth>
-        Submit
-      </Button>
-    </form>
+        <Button
+          onClick={() => setUpdatedUserInfo(auth.currentUser)}
+          fullWidth
+          variant="outlined"
+          sx={{ mt: 2, mb: 3 }}
+        >
+          Retrieve Updated Information
+        </Button>
+
+        {updatedUserInfo && (
+          <div>
+            <Typography variant="h6">Retrieved User Information:</Typography>
+            <Typography>
+              Display Name: {updatedUserInfo.displayName}<br />
+              Email: {updatedUserInfo.email}<br />
+              Phone Number: {updatedUserInfo.phoneNumber}<br />
+              Profile Picture: {updatedUserInfo.photoURL}
+              <img alt='dp' src={updatedUserInfo.photoURL}></img>
+            </Typography>
+          </div>
+        )}
+      </Paper>
+    </Container>
   );
 };
 
-export default UserDetailsForm;
+export default UpdateUserInfo;
