@@ -88,7 +88,7 @@ const Signin = () => {
               Log In
             </Button>
             <Link href="#" variant="body2" onClick={handlePasswordReset}>
-              Forgot Password?
+              Forgot Password ?
             </Link>
           </form>
           {error && <Typography color="error" variant="body2" className="text-red-500 mt-4">{error}</Typography>}

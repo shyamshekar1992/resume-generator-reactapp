@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { TextField, Button, Typography, Box } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 
 const ContactMe = () => {
+  const navigate = useNavigate(); // Use useNavigate to access the navigate function
+
   const [isSubmitting, setSubmitting] = useState(false);
 
   const formik = useFormik({
@@ -20,7 +23,6 @@ const ContactMe = () => {
     onSubmit: async (values) => {
       setSubmitting(true);
 
-      // Replace 'your-formspree-endpoint' with your Formspree endpoint
       const formSpreeEndpoint = "https://formspree.io/f/xyybonpy";
 
       try {
@@ -31,12 +33,15 @@ const ContactMe = () => {
           },
           body: JSON.stringify(values),
         });
-
+console.log("response",response)
         if (response.ok) {
-          alert("Message sent successfully!");
+          navigate('/success')
+
           formik.resetForm();
         } else {
-          alert("Error sending message. Please try again later.");
+          console.log(" fail response",response)
+
+          navigate('/failure')
         }
       } catch (error) {
         console.error("Error sending message:", error);

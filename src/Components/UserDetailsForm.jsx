@@ -1,152 +1,106 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, updateProfile } from 'firebase/auth';
-import { Container, Paper, Typography, TextField, Button, Alert } from '@mui/material';
+import * as React from "react";
+import PropTypes from "prop-types";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import ContactInfo from "./ContactInfo";
+import JobDescription from "./JobDescription";
+import EducationForm from "./EducationForm";
+import WorkExperience from "./WorkExperience";
+import Skills from "./Skiils";
+import PortfolioLinks from "./PortfolioLinks";
+import Languages from "./Languages";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAXtFQVA5Q7K3F_IeqFrR_-wDdqj4KsLFY",
-  authDomain: "shyam-gmbh.firebaseapp.com",
-  projectId: "shyam-gmbh",
-  storageBucket: "shyam-gmbh.appspot.com",
-  messagingSenderId: "1096712939317",
-  appId: "1:1096712939317:web:76f6238d5b6c418802ce7c",
-  measurementId: "G-NVH7E83Z94"
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`vertical-tabpanel-${index}`}
+      aria-labelledby={`vertical-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-const UpdateUserInfo = () => {
-  const [user, setUser] = useState(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [updatedUserInfo, setUpdatedUserInfo] = useState(null); // New state for retrieved user information
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-    });
-
-    return () => unsubscribe();
-  }, [auth]);
-
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    setProfilePicture(file);
+function a11yProps(index) {
+  return {
+    id: `vertical-tab-${index}`,
+    "aria-controls": `vertical-tabpanel-${index}`,
   };
+}
 
-  const handleUpdateUserInfo = async () => {
-    try {
-      if (user) {
-        // Update user profile information
-        await updateProfile(user, {
-          displayName: `${firstName} ${lastName}`,
-          photoURL: profilePicture ? URL.createObjectURL(profilePicture) : null,
-        });
+export default function UserInfoTabs() {
+  const [value, setValue] = React.useState(0);
 
-        // Retrieve updated user information
-        const updatedUser = await auth.currentUser;
-        setUpdatedUserInfo(updatedUser);
-
-        console.log('User information updated successfully');
-        setError(null);
-      } else {
-        setError('User is not signed in');
-      }
-    } catch (error) {
-      setError('Error updating user information');
-      console.error('Error updating user information:', error);
-    }
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Paper elevation={3} sx={{ padding: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography component="h1" variant="h5">
-          Update User Information
-        </Typography>
+    <Box
+      sx={{
+        flexGrow: 1,
+        bgcolor: "background.paper",
+        display: "flex",
+        height: 600,
+        width: "100%",
+      }}
+    >
+      <Tabs
+        orientation="vertical"
+        variant="scrollable"
+        value={value}
+        onChange={handleChange}
+        aria-label="Vertical tabs example"
+        sx={{ borderRight: 5, borderColor: "divider" }}
+      >
+        <Tab label="Contact Details" {...a11yProps(0)} />
+        <Tab label="Description" {...a11yProps(1)} />
+        <Tab label="Education" {...a11yProps(2)} />
+        <Tab label="Professional Experience" {...a11yProps(3)} />
+        <Tab label="Skills" {...a11yProps(4)} />
+        <Tab label="Portfolio" {...a11yProps(5)} />
+        <Tab label="Languages" {...a11yProps(6)} />
+      </Tabs>
+      <TabPanel value={value} index={0}>
+        <ContactInfo />
+      </TabPanel>
+      <TabPanel value={value} index={1}>
+      <JobDescription />
 
-        {error && <Alert severity="error">{error}</Alert>}
+      </TabPanel>
+      <TabPanel value={value} index={2}>
+      <EducationForm />
+      </TabPanel>
+      <TabPanel value={value} index={3}>
+      <WorkExperience />
 
-        <TextField
-          margin="normal"
-          fullWidth
-          id="firstName"
-          label="First Name"
-          name="firstName"
-          autoComplete="given-name"
-          value={firstName}
-          onChange={(event) => setFirstName(event.target.value)}
-        />
-
-        <TextField
-          margin="normal"
-          fullWidth
-          id="lastName"
-          label="Last Name"
-          name="lastName"
-          autoComplete="family-name"
-          value={lastName}
-          onChange={(event) => setLastName(event.target.value)}
-        />
-
-        <TextField
-          margin="normal"
-          fullWidth
-          id="phoneNumber"
-          label="Phone Number"
-          name="phoneNumber"
-          autoComplete="tel"
-          value={phoneNumber}
-          onChange={(event) => setPhoneNumber(event.target.value)}
-        />
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          style={{ margin: '16px 0' }}
-        />
-
-        {profilePicture && (
-          <img
-            src={URL.createObjectURL(profilePicture)}
-            alt="Profile Preview"
-            style={{ maxWidth: '100%', marginBottom: '16px' }}
-          />
-        )}
-
-        <Button onClick={handleUpdateUserInfo} fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-          Update Information
-        </Button>
-
-        <Button
-          onClick={() => setUpdatedUserInfo(auth.currentUser)}
-          fullWidth
-          variant="outlined"
-          sx={{ mt: 2, mb: 3 }}
-        >
-          Retrieve Updated Information
-        </Button>
-
-        {updatedUserInfo && (
-          <div>
-            <Typography variant="h6">Retrieved User Information:</Typography>
-            <Typography>
-              Display Name: {updatedUserInfo.displayName}<br />
-              Email: {updatedUserInfo.email}<br />
-              Phone Number: {updatedUserInfo.phoneNumber}<br />
-              Profile Picture: {updatedUserInfo.photoURL}
-              <img alt='dp' src={updatedUserInfo.photoURL}></img>
-            </Typography>
-          </div>
-        )}
-      </Paper>
-    </Container>
+      </TabPanel>
+      <TabPanel value={value} index={4}>
+      <Skills />
+      </TabPanel>
+      <TabPanel value={value} index={5}>
+        <PortfolioLinks />
+      </TabPanel>
+      <TabPanel value={value} index={6}>
+      <Languages />
+      </TabPanel>
+    </Box>
   );
-};
-
-export default UpdateUserInfo;
+}

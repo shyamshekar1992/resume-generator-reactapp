@@ -8,7 +8,8 @@ import UserDetails from './Pages/UserDetails';
 import Signin from './Components/Signin';
 import ContactMe from './Pages/ContactMe';
 import UserDetailsForm from './Components/UserDetailsForm';
-
+import FailurePage from './Pages/FailurePage';
+import SucessPage from './Pages/SucessPage';
 function App() {
   return (
     <Router>
@@ -22,6 +23,8 @@ function App() {
           <Route path="/signin" element={<Signin />} />
           <Route path="/contactus" element={<ContactMe />} />
           <Route path="/edit" element={<UserDetailsForm />} />
+          <Route path="/success" element={<SucessPage />} />
+          <Route path="/failure" element={<FailurePage />} />
         </Routes>
       </div>
     </Router>
